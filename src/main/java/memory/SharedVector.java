@@ -70,21 +70,28 @@ public class SharedVector {
     }
 
     public void add(SharedVector other) {
+        if (this==other){
+            writeLock();
+             for(int i=0;i<vector.length;i++){                
+                vector[i] = vector[i]*2;
+            }
+            writeUnlock();
+            return;
+        }  
         if(vector.length!=other.vector.length)
-            throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent sizes");
-        
-        writeLock();
+            throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent sizes"); 
         other.readLock();
+        writeLock();
         try{
-            if (orientation!=other.orientation)
-             throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent orientations");
-        for (int i=0;i<vector.length;i++){
-            vector[i]+=other.vector[i];
-            }  
+            if(orientation!=other.orientation)
+                throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent orientations");
+            for(int i=0;i<vector.length;i++){
+                vector[i] = vector[i]+ other.vector[i];
+            }
         }
         finally{
-            writeUnlock();
             other.readUnlock();
+            writeUnlock();
         }
     } 
 
