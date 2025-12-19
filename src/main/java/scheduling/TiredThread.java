@@ -57,10 +57,11 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
      */
     public void newTask(Runnable task) {
     if(busy.get()){
-    throw new IllegalStateException("[newTask]: Thread is busy! cannot get new task!") ;
-       }
-    if(!alive.get())
-    throw new IllegalStateException("[newTask]: Thread is DEAD! cannot get new task!") ;
+        throw new IllegalStateException("[newTask]: Thread is busy! cannot get new task!");
+    }
+    if(!alive.get()){
+        throw new IllegalStateException("[newTask]: Thread is DEAD! cannot get new task!");
+    }
     handoff.offer(task);
     }
  
