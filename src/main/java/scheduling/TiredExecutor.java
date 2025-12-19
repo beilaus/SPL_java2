@@ -12,12 +12,20 @@ public class TiredExecutor {
     private final AtomicInteger inFlight = new AtomicInteger(0);
 
     public TiredExecutor(int numThreads) {
-        // TODO
-        workers = null; // placeholder
+        workers = new TiredThread[numThreads];
     }
 
     public void submit(Runnable task) {
         // TODO
+        TiredThread curWorker= idleMinHeap.poll();
+        if(curWorker!=null){
+            curWorker.newTask(task);
+            inFlight.incrementAndGet();
+        }
+        while(curWorker.isBusy()){
+              curWorker.wait();  
+        }
+
     }
 
     public void submitAll(Iterable<Runnable> tasks) {
@@ -26,10 +34,21 @@ public class TiredExecutor {
 
     public void shutdown() throws InterruptedException {
         // TODO
+        for(int i=0;i<workers.length();i++){
+            try{
+                TiredThread cur=workers[i];
+                cur.shutdown();   
+            }
+            catch(InterruptedException e){
+                  cur.shutdown();  
+            }
+        }
     }
 
     public synchronized String getWorkerReport() {
         // TODO: return readable statistics for each worker
         return null;
     }
+
+    
 }
