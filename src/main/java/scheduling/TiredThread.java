@@ -62,7 +62,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
         if(!alive.get()){
             throw new IllegalStateException("[newTask]: Thread is DEAD! cannot get new task!");
         }
-        busy.set(true);
+        busy.set(true); //Once handed a task, set busy to true
         handoff.offer(task);
     }
  
@@ -81,7 +81,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
             try{
                 Runnable curtask=handoff.take();
                 busy.set(true);
-                if(curtask==POISON_PILL){
+                if(curtask==POISON_PILL){ //Shut down signal
                     alive.set(false); 
                     break;
                 }
@@ -96,7 +96,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
             catch(InterruptedException e){
                 Thread.currentThread().interrupt(); //Shouldn't happen in our project.
             }
-            finally{ //Notify executor that a task has finished/crashed
+            finally{     //Notify executor that a task has finished/crashed
                 busy.set(false);
                 synchronized(TiredExecutor.class){
                     TiredExecutor.class.notifyAll();

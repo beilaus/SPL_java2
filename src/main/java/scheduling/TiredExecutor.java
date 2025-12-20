@@ -18,16 +18,16 @@ public class TiredExecutor {
         }
         workers = new TiredThread[numThreads];
         for(int i = 0; i < workers.length; i++){
-            TiredThread thread = new TiredThread(i, Math.random()+0.5);
+            TiredThread thread = new TiredThread(i, Math.random()+0.5); // range [0.5,1.5)
             workers[i] = thread;
             idleMinHeap.put(thread);
-            thread.start();
+            thread.start(); //Kickstarting each thread
         }
     }
 
     public void submit(Runnable task) {
         // TODO
-        synchronized(TiredExecutor.class){
+        synchronized(TiredExecutor.class){ //Locks onto the class to connect with TiredThread
             updateWorkers();
             while(idleMinHeap.isEmpty()){
                 try{
@@ -40,7 +40,7 @@ public class TiredExecutor {
                 }
             }
         }
-        TiredThread work = idleMinHeap.poll();
+        TiredThread work = idleMinHeap.poll(); //Taking the least tired worker
         inFlight.incrementAndGet();
         work.newTask(task);
     }
@@ -71,19 +71,19 @@ public class TiredExecutor {
 
     public void shutdown() throws InterruptedException {
         // TODO
-        for(int i=0;i<workers.length;i++){
+        for(int i = 0; i <workers.length;i++){ //Shuts down all workers one after the other
             TiredThread cur=workers[i];
             cur.shutdown();                  
         }
-        for(int i=0;i<workers.length;i++){
-            workers[i].join();
+        for(int i = 0; i < workers.length;i++){
+            workers[i].join(); //Waits for all workers to terminate
         }
     }
 
     public synchronized String getWorkerReport() {
         // TODO: return readable statistics for each worker
         String output = "";
-        for(int i = 0; i < workers.length; i++){
+        for(int i = 0; i < workers.length; i++){ //All readable statistics for each worker
             TiredThread cur = workers[i];
             output += "Worker " + i + ":\n";
             output += "\tFatigue: " + cur.getFatigue() + "\n";
@@ -95,7 +95,7 @@ public class TiredExecutor {
     }
 
     private void updateWorkers(){
-        for(int i = 0; i < workers.length; i++){ //Handles fetching non-busy workers
+        for(int i = 0; i < workers.length; i++){   //Handles fetching non-busy workers
             if(workers[i].getState().equals(Thread.State.TERMINATED)){
                 throw new IllegalThreadStateException("[updateWorkers]: A thread has crashed and been terminated."); 
             }

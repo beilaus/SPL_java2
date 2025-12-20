@@ -20,7 +20,7 @@ public class SharedVector {
         // TODO: return element at index (read-locked)
         readLock();
         try {
-            if(index<0 || index>=vector.length)
+            if(index < 0 || index >= vector.length)
                 throw new IndexOutOfBoundsException("[Sharedvector:Get]: Index out of bounds");
             double output = vector[index];
             return output;
@@ -44,10 +44,11 @@ public class SharedVector {
     public VectorOrientation getOrientation() {
         readLock();
         try{
-            VectorOrientation orient=orientation;
-            return orient;
+            return orientation;
         }
-        finally{readUnlock();}
+        finally{
+            readUnlock();
+        }
     }
 
     public void writeLock() {
@@ -86,7 +87,7 @@ public class SharedVector {
         }
         int h1 = System.identityHashCode(this);
         int h2 = System.identityHashCode(other);
-        if(h1 > h2){ //Preventing lock
+        if(h1 > h2){    //Preventing critical deadlock
             other.readLock();
             writeLock();
         }
@@ -113,7 +114,7 @@ public class SharedVector {
     public void negate() {
         writeLock();
         try{
-            for(int i=0;i<vector.length;i++){
+            for(int i = 0; i < vector.length;i++){
                 vector[i]= -1*vector[i];
             }
         }
@@ -129,13 +130,13 @@ public class SharedVector {
         other.readLock();
         readLock();
         try{
-            if(vector.length!=other.vector.length){
+            if(vector.length != other.vector.length){
                 throw new IllegalArgumentException("[dot]: Cannot multiply vectors with different sizes");
             }
-            if(orientation==other.orientation){
+            if(orientation == other.orientation){
                 throw new IllegalArgumentException("[dot]: Cannot multiply vectors with same orientations");
             }
-            for(int i=0;i<vector.length;i++){
+            for(int i = 0; i < vector.length;i++){
                 result += vector[i]*other.vector[i];
             }
             return result;
@@ -153,18 +154,18 @@ public class SharedVector {
         // TODO: compute row-vector × matrix
         writeLock();
         try{
-            if(orientation==VectorOrientation.COLUMN_MAJOR){           
+            if(orientation == VectorOrientation.COLUMN_MAJOR){           
                 throw new IllegalArgumentException("[VecMatMul]: vector orientation must be row");
-        }
-            if(matrix.get(0).orientation==VectorOrientation.ROW_MAJOR){
-                if(matrix.length()!=vector.length){
+            }
+            if(matrix.get(0).orientation == VectorOrientation.ROW_MAJOR){
+                if(matrix.length() != vector.length){
                     throw new IllegalArgumentException("[VecMatMul]: Matrix length doesnt fit vector length");
                 }
                 double[] res=new double[matrix.get(0).length()];
-                for(int i=0;i<matrix.length();i++){
+                for(int i = 0; i < matrix.length();i++){
                     matrix.get(i).readLock();               
                     try{
-                        for(int j=0; j<matrix.get(i).length();j++){
+                        for(int j = 0; j < matrix.get(i).length();j++){
                             res[j]+=vector[i]*matrix.get(i).get(j);
                         } 
                     }
@@ -175,11 +176,11 @@ public class SharedVector {
                 vector=res;
             }
             else{                                                //other matrix is column major
-                if(matrix.get(0).length()!=vector.length){
+                if(matrix.get(0).length() != vector.length){
                     throw new IllegalArgumentException("[VecMatMul]: matrix columns are not equal to vector's length");
                 }
-                double[] res=new double[matrix.length()];
-                for(int i=0; i<matrix.length();i++){
+                double[] res= new double[matrix.length()];
+                for(int i = 0; i < matrix.length();i++){
                     res[i]=this.dot(matrix.get(i));
                 }
                 vector=res;
@@ -189,5 +190,4 @@ public class SharedVector {
             writeUnlock();
         }
     }
-
 }
