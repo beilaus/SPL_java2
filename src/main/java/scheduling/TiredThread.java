@@ -79,7 +79,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     public void run() {
        while(alive.get()){
             try{
-                busy.set(false);
                 Runnable curtask=handoff.take();
                 busy.set(true);
                 if(curtask==POISON_PILL){
