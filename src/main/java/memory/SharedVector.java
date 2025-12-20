@@ -96,7 +96,7 @@ public class SharedVector {
         }
         try{
             if(vector.length!=other.vector.length)
-                throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent sizes"); 
+                throw new IllegalArgumentException("[Add]: Cannot add vectors with different sizes");
             if(orientation!=other.orientation)
                 throw new IllegalArgumentException("[Add]: Cannot add vectors with different orientations");
             for(int i=0;i<vector.length;i++){
@@ -130,7 +130,7 @@ public class SharedVector {
         readLock();
         try{
             if(vector.length!=other.vector.length){
-                throw new IllegalArgumentException("[dot]: Cannot multiply vectors with diferent sizes");
+                throw new IllegalArgumentException("[dot]: Cannot multiply vectors with different sizes");
             }
             if(orientation==other.orientation){
                 throw new IllegalArgumentException("[dot]: Cannot multiply vectors with same orientations");
@@ -158,7 +158,7 @@ public class SharedVector {
         }
             if(matrix.get(0).orientation==VectorOrientation.ROW_MAJOR){
                 if(matrix.length()!=vector.length){
-                    throw new IllegalArgumentException("[VecMatMul: Matrix length doesnt fit vector length");
+                    throw new IllegalArgumentException("[VecMatMul]: Matrix length doesnt fit vector length");
                 }
                 double[] res=new double[matrix.get(0).length()];
                 for(int i=0;i<matrix.length();i++){
@@ -180,7 +180,7 @@ public class SharedVector {
                 }
                 double[] res=new double[matrix.length()];
                 for(int i=0; i<matrix.length();i++){
-                    res[i]=dot(matrix.get(i));
+                    res[i]=this.dot(matrix.get(i));
                 }
                 vector=res;
             }

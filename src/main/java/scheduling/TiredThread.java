@@ -39,7 +39,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     }
 
     public boolean isBusy() {
-        return busy.get();
+        return busy.get() || !handoff.isEmpty();
     }
 
     public long getTimeUsed() {
@@ -92,12 +92,15 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
                 long TaskDuration=curStopTime-curStartTime;
                 timeUsed.addAndGet(TaskDuration);
                 idleStartTime.set(System.nanoTime());
-                synchronized(TiredExecutor.class){
-                    TiredExecutor.class.notifyAll();
-                }
             }
             catch(InterruptedException e){
                 Thread.currentThread().interrupt(); //Shouldn't happen in our project.
+            }
+            finally{ //Notify executor that a task has finished/crashed
+                busy.set(false);
+                synchronized(TiredExecutor.class){
+                    TiredExecutor.class.notifyAll();
+                }
             }
        }
     }

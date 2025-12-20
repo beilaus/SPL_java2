@@ -4,7 +4,7 @@ import parser.*;
 import memory.*;
 import scheduling.*;
 
-import java.util.ArrayList;
+import java.util.ArrayList; //imported for code structure
 import java.util.List;
 
 public class LinearAlgebraEngine {
@@ -20,14 +20,24 @@ public class LinearAlgebraEngine {
 
     public ComputationNode run(ComputationNode computationRoot) {
         // TODO: resolve computation tree step by step until final matrix is produced
-        while(computationRoot.getNodeType() != ComputationNodeType.MATRIX){
-            ComputationNode compNode = computationRoot.findResolvable(); 
-            compNode.associativeNesting();
-            compNode = compNode.findResolvable();
-            loadAndCompute(compNode);
-            compNode.resolve(leftMatrix.readRowMajor());
+        try{
+            while(computationRoot.getNodeType() != ComputationNodeType.MATRIX){
+                ComputationNode compNode = computationRoot.findResolvable(); 
+                compNode.associativeNesting();
+                compNode = compNode.findResolvable();
+                loadAndCompute(compNode);
+                compNode.resolve(leftMatrix.readRowMajor());
+            }
         }
-            return computationRoot;
+        finally{
+            try{
+                executor.shutdown();
+            }
+            catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
+        }
+        return computationRoot;
     }
 
     public void loadAndCompute(ComputationNode node) {
@@ -60,6 +70,9 @@ public class LinearAlgebraEngine {
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
         List<Runnable> addOutput = new ArrayList<>();
+        if(leftMatrix.length() != rightMatrix.length()){
+            throw new IllegalArgumentException("[createAddTasks]: Matrix lengths don't match");
+        }
         for(int i = 0; i < leftMatrix.length(); i++){
             SharedVector left = leftMatrix.get(i);
             SharedVector right = rightMatrix.get(i);
@@ -106,4 +119,6 @@ public class LinearAlgebraEngine {
         // TODO: return summary of worker activity
         return executor.getWorkerReport();
     }
+
+
 }

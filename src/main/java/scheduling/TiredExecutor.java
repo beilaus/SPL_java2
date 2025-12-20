@@ -13,6 +13,9 @@ public class TiredExecutor {
     private final AtomicInteger inFlight = new AtomicInteger(0);
 
     public TiredExecutor(int numThreads) {
+        if(numThreads <= 0){
+            throw new IllegalArgumentException("[TiredExecutor]: Number of threads must be positive!");
+        }
         workers = new TiredThread[numThreads];
         for(int i = 0; i < workers.length; i++){
             TiredThread thread = new TiredThread(i, Math.random()+0.5);
@@ -42,7 +45,7 @@ public class TiredExecutor {
         work.newTask(task);
     }
 
-    public void submitAll(Iterable<Runnable> tasks) {
+    public void submitAll(Iterable<Runnable> tasks){
         // TODO: submit tasks one by one and wait until all finish
         Iterator<Runnable> iter = tasks.iterator();
         while(iter.hasNext()){
@@ -93,10 +96,14 @@ public class TiredExecutor {
 
     private void updateWorkers(){
         for(int i = 0; i < workers.length; i++){ //Handles fetching non-busy workers
+            if(workers[i].getState().equals(Thread.State.TERMINATED)){
+                throw new IllegalThreadStateException("[updateWorkers]: A thread has crashed and been terminated."); 
+            }
             if(!workers[i].isBusy() && !idleMinHeap.contains(workers[i])){
                 idleMinHeap.put(workers[i]);
                 inFlight.decrementAndGet();
             }
+            
         }
     }
 }

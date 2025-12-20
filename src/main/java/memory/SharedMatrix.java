@@ -51,7 +51,7 @@ public class SharedMatrix {
                         output[i][j] = vectors[i].get(j);
                     }
                 }
-            } else {
+            } else { //Column major
                 output = new double[vectors[0].length()][length()];
                 for (int i = 0; i < vectors[0].length(); i++) {
                     for (int j = 0; j < vectors.length; j++) {
