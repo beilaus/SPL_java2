@@ -24,19 +24,18 @@ public class TiredExecutor {
 
     public void submit(Runnable task) {
         // TODO
-        updateWorkers();
-        while(idleMinHeap.isEmpty()){ //REVIEW WHEN PEASANTS ASK IN FORUM
-            synchronized(this){
+        synchronized(TiredExecutor.class){
+            updateWorkers();
+            while(idleMinHeap.isEmpty()){
                 try{
-                    this.wait(100);
+                    TiredExecutor.class.wait();
+                    updateWorkers();
                 }
                 catch(InterruptedException e){
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
                     return;
                 }
-                updateWorkers();
             }
-            
         }
         TiredThread work = idleMinHeap.poll();
         inFlight.incrementAndGet();
@@ -50,18 +49,21 @@ public class TiredExecutor {
             this.submit(iter.next());
         }
         while(inFlight.get() > 0){
-            synchronized(this){
+            synchronized(TiredExecutor.class){
+                updateWorkers();
+                if(inFlight.get() == 0){
+                    break;
+                }
                 try{
-                    wait(100);
+                    TiredExecutor.class.wait();
+                    updateWorkers();
                 }
                 catch(InterruptedException e){
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
                     return;
                 }
-                updateWorkers();
             }
         }
-      
     }
 
     public void shutdown() throws InterruptedException {
@@ -77,7 +79,16 @@ public class TiredExecutor {
 
     public synchronized String getWorkerReport() {
         // TODO: return readable statistics for each worker
-        return null;
+        String output = "";
+        for(int i = 0; i < workers.length; i++){
+            TiredThread cur = workers[i];
+            output += "Worker " + i + ":\n";
+            output += "\tFatigue: " + cur.getFatigue() + "\n";
+            output += "\tTime Used (ns): " + cur.getTimeUsed() + "\n";
+            output += "\tTime Idle (ns): " + cur.getTimeIdle() + "\n";
+            output += "\tIs Busy: " + cur.isBusy() + "\n";
+        }
+        return output;
     }
 
     private void updateWorkers(){

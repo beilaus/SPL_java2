@@ -56,13 +56,13 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
      * it throws IllegalStateException.
      */
     public void newTask(Runnable task) {
-    if(busy.get()){
-        throw new IllegalStateException("[newTask]: Thread is busy! cannot get new task!");
-    }
-    if(!alive.get()){
-        throw new IllegalStateException("[newTask]: Thread is DEAD! cannot get new task!");
-    }
-    handoff.offer(task);
+        if(busy.get()){
+            throw new IllegalStateException("[newTask]: Thread is busy! cannot get new task!");
+        }
+        if(!alive.get()){
+            throw new IllegalStateException("[newTask]: Thread is DEAD! cannot get new task!");
+        }
+        handoff.offer(task);
     }
  
 
@@ -77,26 +77,28 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     @Override
     public void run() {
        while(alive.get()){
-        try{
-            busy.set(false);
-            Runnable curtask=handoff.take();
-            busy.set(true);
-            if(curtask==POISON_PILL){
-                alive.set(false); 
-                break;
+            try{
+                busy.set(false);
+                Runnable curtask=handoff.take();
+                busy.set(true);
+                if(curtask==POISON_PILL){
+                    alive.set(false); 
+                    break;
+                }
+                long curStartTime=(System.nanoTime());
+                timeIdle.addAndGet(System.nanoTime()-idleStartTime.get());
+                curtask.run();
+                long curStopTime=(System.nanoTime());
+                long TaskDuration=curStopTime-curStartTime;
+                timeUsed.addAndGet(TaskDuration);
+                idleStartTime.set(System.nanoTime());
+                synchronized(TiredExecutor.class){
+                    TiredExecutor.class.notifyAll();
+                }
             }
-            long curStartTime=(System.nanoTime());
-            timeIdle.addAndGet(System.nanoTime()-idleStartTime.get());
-            curtask.run();
-            long curStopTime=(System.nanoTime());
-            long TaskDuration=curStopTime-curStartTime;
-            timeUsed.addAndGet(TaskDuration);
-            idleStartTime.set(System.nanoTime());
-            
-        }
-        catch(InterruptedException e){
-            //wont happen
-        }
+            catch(InterruptedException e){
+                Thread.currentThread().interrupt(); //Shouldn't happen in our project.
+            }
        }
     }
 

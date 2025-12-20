@@ -18,10 +18,10 @@ public class SharedVector {
 
     public double get(int index) {
         // TODO: return element at index (read-locked)
-        if(index<0 || index>=vector.length)
-            throw new IndexOutOfBoundsException("[Sharedvector:Get]: Index out of bounds");
         readLock();
         try {
+            if(index<0 || index>=vector.length)
+                throw new IndexOutOfBoundsException("[Sharedvector:Get]: Index out of bounds");
             double output = vector[index];
             return output;
         }
@@ -80,16 +80,23 @@ public class SharedVector {
         
     }
 
-    public void add(SharedVector other) {              //Note: Might cause deadlock if a+b and b+a are executed at the same time, yet-
-        if (this==other){                             //This situation wont happen in LAE implementation
+    public void add(SharedVector other) {
+        if (this==other){   
             throw new IllegalArgumentException("[Add]: Cannot add a vector to itself");                              
-        }  
-        other.readLock();
-        writeLock();
-        if(vector.length!=other.vector.length)
-            throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent sizes"); 
-        
+        }
+        int h1 = System.identityHashCode(this);
+        int h2 = System.identityHashCode(other);
+        if(h1 > h2){ //Preventing lock
+            other.readLock();
+            writeLock();
+        }
+        else{
+            writeLock();
+            other.readLock();
+        }
         try{
+            if(vector.length!=other.vector.length)
+                throw new IllegalArgumentException("[Add]: Cannot add vectors with diferent sizes"); 
             if(orientation!=other.orientation)
                 throw new IllegalArgumentException("[Add]: Cannot add vectors with different orientations");
             for(int i=0;i<vector.length;i++){
@@ -97,19 +104,23 @@ public class SharedVector {
             }
         }
         finally{
-            other.readUnlock();
             writeUnlock();
+            other.readUnlock();
         }
-    } 
+    }
+        
 
     public void negate() {
         writeLock();
-        for(int i=0;i<vector.length;i++){
-            vector[i]= -1*vector[i];
+        try{
+            for(int i=0;i<vector.length;i++){
+                vector[i]= -1*vector[i];
+            }
         }
-        writeUnlock();
+        finally{
+            writeUnlock();  
+        }
     }
-
     public double dot(SharedVector other) {  //Note: Might cause deadlock if a*b and b*a are executed at the same time, yet-
         double result=0;                        //This situation wont happen in LAE implementation
         if (this==other){                            
@@ -117,11 +128,13 @@ public class SharedVector {
         }  
         other.readLock();
         readLock();
-        if(vector.length!=other.vector.length)
-            throw new IllegalArgumentException("[dot]: Cannot multiply vectors with diferent sizes"); 
         try{
-            if(orientation==other.orientation)
+            if(vector.length!=other.vector.length){
+                throw new IllegalArgumentException("[dot]: Cannot multiply vectors with diferent sizes");
+            }
+            if(orientation==other.orientation){
                 throw new IllegalArgumentException("[dot]: Cannot multiply vectors with same orientations");
+            }
             for(int i=0;i<vector.length;i++){
                 result += vector[i]*other.vector[i];
             }
