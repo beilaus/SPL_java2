@@ -39,7 +39,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     }
 
     public boolean isBusy() {
-        return busy.get() || !handoff.isEmpty();
+        return busy.get();
     }
 
     public long getTimeUsed() {
@@ -56,7 +56,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
      * it throws IllegalStateException.
      */
     public void newTask(Runnable task) {
-        if(busy.get()){
+        if(!handoff.isEmpty()){
             throw new IllegalStateException("[newTask]: Thread is busy! cannot get new task!");
         }
         if(!alive.get()){
@@ -93,6 +93,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
                 long curStartTime=(System.nanoTime());
                 timeIdle.addAndGet(System.nanoTime()-idleStartTime.get());
                 curtask.run();
+                busy.set(false);
                 long curStopTime=(System.nanoTime());
                 long TaskDuration=curStopTime-curStartTime;
                 timeUsed.addAndGet(TaskDuration);
@@ -100,12 +101,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
             }
             catch(InterruptedException e){
                 Thread.currentThread().interrupt(); //Shouldn't happen in our project.
-            }
-            finally{     //Notify executor that a task has finished/crashed
-                busy.set(false);
-                // synchronized(TiredExecutor.class){
-                //     TiredExecutor.class.notifyAll();
-                // }
             }
        }
     }

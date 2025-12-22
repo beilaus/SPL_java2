@@ -27,22 +27,6 @@ public class TiredExecutor {
 
     public void submit(Runnable task) {
         // TODO
-        // synchronized(TiredExecutor.class){ //Locks onto the class to connect with TiredThread
-        //     updateWorkers();
-        //     while(idleMinHeap.isEmpty()){
-        //         try{
-        //             TiredExecutor.class.wait();
-        //             updateWorkers();
-        //         }
-        //         catch(InterruptedException e){
-        //             Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
-        //             return;
-        //         }
-        //     }
-        // }
-        // TiredThread work = idleMinHeap.poll(); //Taking the least tired worker
-        // inFlight.incrementAndGet();
-        // work.newTask(task);
         checkCrash();
         try{
             TiredThread worker = idleMinHeap.take();
@@ -51,6 +35,10 @@ public class TiredExecutor {
                     task.run();
                     inFlight.decrementAndGet();
                     idleMinHeap.put(worker);
+                }
+                catch(Exception e){
+                    System.err.print(e.getMessage());
+                    throw e;
                 }
                 finally{
                     synchronized(this){
@@ -83,25 +71,6 @@ public class TiredExecutor {
                 }    
             }
         }
-
-
-
-        // while(inFlight.get() > 0){
-        //     synchronized(TiredExecutor.class){
-        //         updateWorkers();
-        //         if(inFlight.get() == 0){
-        //             break;
-        //         }
-        //         try{
-        //             TiredExecutor.class.wait();
-        //             updateWorkers();
-        //         }
-        //         catch(InterruptedException e){
-        //             Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
-        //             return;
-        //         }
-        //     }
-        // }
     }
 
     public void shutdown() throws InterruptedException {
