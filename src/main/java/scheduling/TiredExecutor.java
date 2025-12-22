@@ -31,16 +31,21 @@ public class TiredExecutor {
         try{
             TiredThread worker = idleMinHeap.take();
             Runnable wrappedTask = () -> { //wraps the task
+                boolean notCrashed = false;
                 try{
                     task.run();
-                    inFlight.decrementAndGet();
-                    idleMinHeap.put(worker);
+                    notCrashed = true;
                 }
                 catch(Exception e){
                     System.err.print(e.getMessage());
                     throw e;
                 }
                 finally{
+                    inFlight.decrementAndGet();
+                    if(notCrashed){
+                        worker.setBusy(false);
+                        idleMinHeap.put(worker);
+                    }
                     synchronized(this){
                         this.notifyAll();
                     }
@@ -62,14 +67,15 @@ public class TiredExecutor {
         }
         synchronized(this){
             while(inFlight.get() > 0){
+                checkCrash();
                 try{
-                    wait();
-                    checkCrash();   
+                    wait();   
                 }
-                catch (Exception e) {
+                catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }    
             }
+            checkCrash();
         }
     }
 
