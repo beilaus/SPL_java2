@@ -72,7 +72,12 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
      * Inserts a poison pill so the worker wakes up and exits.
      */
     public void shutdown() {
-        handoff.offer(POISON_PILL);
+        try{
+            handoff.put(POISON_PILL);
+        }
+        catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -98,9 +103,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
             }
             finally{     //Notify executor that a task has finished/crashed
                 busy.set(false);
-                synchronized(TiredExecutor.class){
-                    TiredExecutor.class.notifyAll();
-                }
+                // synchronized(TiredExecutor.class){
+                //     TiredExecutor.class.notifyAll();
+                // }
             }
        }
     }

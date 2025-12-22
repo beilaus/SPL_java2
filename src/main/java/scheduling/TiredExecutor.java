@@ -27,22 +27,43 @@ public class TiredExecutor {
 
     public void submit(Runnable task) {
         // TODO
-        synchronized(TiredExecutor.class){ //Locks onto the class to connect with TiredThread
-            updateWorkers();
-            while(idleMinHeap.isEmpty()){
+        // synchronized(TiredExecutor.class){ //Locks onto the class to connect with TiredThread
+        //     updateWorkers();
+        //     while(idleMinHeap.isEmpty()){
+        //         try{
+        //             TiredExecutor.class.wait();
+        //             updateWorkers();
+        //         }
+        //         catch(InterruptedException e){
+        //             Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
+        //             return;
+        //         }
+        //     }
+        // }
+        // TiredThread work = idleMinHeap.poll(); //Taking the least tired worker
+        // inFlight.incrementAndGet();
+        // work.newTask(task);
+        checkCrash();
+        try{
+            TiredThread worker = idleMinHeap.take();
+            Runnable wrappedTask = () -> { //wraps the task
                 try{
-                    TiredExecutor.class.wait();
-                    updateWorkers();
+                    task.run();
+                    inFlight.decrementAndGet();
+                    idleMinHeap.put(worker);
                 }
-                catch(InterruptedException e){
-                    Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
-                    return;
+                finally{
+                    synchronized(this){
+                        this.notifyAll();
+                    }
                 }
-            }
+            };
+            inFlight.incrementAndGet();
+            worker.newTask(wrappedTask);
         }
-        TiredThread work = idleMinHeap.poll(); //Taking the least tired worker
-        inFlight.incrementAndGet();
-        work.newTask(task);
+        catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+        }
     }
 
     public void submitAll(Iterable<Runnable> tasks){
@@ -51,22 +72,36 @@ public class TiredExecutor {
         while(iter.hasNext()){
             this.submit(iter.next());
         }
-        while(inFlight.get() > 0){
-            synchronized(TiredExecutor.class){
-                updateWorkers();
-                if(inFlight.get() == 0){
-                    break;
-                }
+        synchronized(this){
+            while(inFlight.get() > 0){
                 try{
-                    TiredExecutor.class.wait();
-                    updateWorkers();
+                    wait();
+                    checkCrash();   
                 }
-                catch(InterruptedException e){
-                    Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
-                    return;
-                }
+                catch (Exception e) {
+                    Thread.currentThread().interrupt();
+                }    
             }
         }
+
+
+
+        // while(inFlight.get() > 0){
+        //     synchronized(TiredExecutor.class){
+        //         updateWorkers();
+        //         if(inFlight.get() == 0){
+        //             break;
+        //         }
+        //         try{
+        //             TiredExecutor.class.wait();
+        //             updateWorkers();
+        //         }
+        //         catch(InterruptedException e){
+        //             Thread.currentThread().interrupt(); //TiredExecutor.interrupt() shouldn't happen.
+        //             return;
+        //         }
+        //     }
+        // }
     }
 
     public void shutdown() throws InterruptedException {
@@ -94,16 +129,11 @@ public class TiredExecutor {
         return output;
     }
 
-    private void updateWorkers(){
-        for(int i = 0; i < workers.length; i++){   //Handles fetching non-busy workers
+    private void checkCrash(){
+        for(int i = 0; i < workers.length; i++){   //Handles when a thread crashes.
             if(workers[i].getState().equals(Thread.State.TERMINATED)){
-                throw new IllegalThreadStateException("[updateWorkers]: A thread has crashed and been terminated."); 
+                throw new IllegalThreadStateException("[checkCrash]: A thread has crashed and been terminated."); 
             }
-            if(!workers[i].isBusy() && !idleMinHeap.contains(workers[i])){
-                idleMinHeap.put(workers[i]);
-                inFlight.decrementAndGet();
-            }
-            
         }
     }
 }
