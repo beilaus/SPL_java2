@@ -31,7 +31,7 @@ public class LinearAlgebraEngine {
         }
         finally{
             try{
-                System.out.println(executor.getWorkerReport());
+                System.out.println(getWorkerReport());
                 executor.shutdown();
             }
             catch(InterruptedException e){
@@ -71,10 +71,9 @@ public class LinearAlgebraEngine {
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
         List<Runnable> addOutput = new ArrayList<>();
-        if(leftMatrix.length() != rightMatrix.length()){
-            throw new IllegalArgumentException("[createAddTasks]: Matrix lengths don't match");
-        }
-        if(leftMatrix.get(0).length() != rightMatrix.get(0).length())
+        // if(leftMatrix.length() != rightMatrix.length()){
+        //     throw new IllegalArgumentException("[createAddTasks]: Matrix lengths don't match");
+        // }
         for(int i = 0; i < leftMatrix.length(); i++){
             SharedVector left = leftMatrix.get(i);
             SharedVector right = rightMatrix.get(i);
