@@ -93,13 +93,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
                     alive.set(false); 
                     break;
                 }
-                long curStartTime=(System.nanoTime());
                 timeIdle.addAndGet(System.nanoTime()-idleStartTime.get());
                 curtask.run(); //set busy false and put into queue happens here
-                long curStopTime=(System.nanoTime());
-                long TaskDuration=curStopTime-curStartTime;
-                timeUsed.addAndGet(TaskDuration);
-                idleStartTime.set(System.nanoTime());
+                
             }
             catch(InterruptedException e){
                 Thread.currentThread().interrupt(); //Shouldn't happen in our project.
@@ -118,5 +114,11 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     public void setBusy(boolean val){ // allows wrapped task in
                                     // TiredExecutor to adjust busy value
         busy.set(val);
+    }
+    public void setTimes(long curStartTime){ //updates System time for thread
+        long curStopTime=(System.nanoTime());
+        long TaskDuration=curStopTime-curStartTime;
+        timeUsed.addAndGet(TaskDuration);
+        idleStartTime.set(System.nanoTime());
     }
 }

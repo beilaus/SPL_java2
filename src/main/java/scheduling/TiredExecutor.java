@@ -32,7 +32,9 @@ public class TiredExecutor {
             TiredThread worker = idleMinHeap.take();
             Runnable wrappedTask = () -> { //wraps the task
                 try{
+                    long curStartTime=(System.nanoTime());
                     task.run();
+                    worker.setTimes(curStartTime);
                     worker.setBusy(false);
                     idleMinHeap.put(worker);
                 }
@@ -98,6 +100,7 @@ public class TiredExecutor {
             output += "\tTime Idle (ns): " + cur.getTimeIdle() + "\n";
             output += "\tIs Busy: " + cur.isBusy() + "\n";
         }
+        output += "Overall Worker Fairness: " + calculateFairnessScore() + "\n";
         return output;
     }
 
@@ -105,5 +108,22 @@ public class TiredExecutor {
         if(inFlight.get() < 0){
             throw new IllegalThreadStateException("[checkCrash]: A thread has crashed");
         }
+    }
+
+    public double calculateFairnessScore() {
+        if (workers == null || workers.length == 0) {
+            return 0.0;
+        }
+        double totalFatigue = 0;
+        for (TiredThread worker : workers) {
+            totalFatigue += worker.getFatigue();
+        }
+        double averageFatigue = totalFatigue / workers.length;
+        double sumOfSquaredDeviations = 0;
+        for (TiredThread worker : workers) {
+            double deviation = worker.getFatigue() - averageFatigue;
+            sumOfSquaredDeviations += Math.pow(deviation, 2);
+        }
+        return sumOfSquaredDeviations;
     }
 }

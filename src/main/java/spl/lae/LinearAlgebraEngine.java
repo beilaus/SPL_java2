@@ -31,6 +31,7 @@ public class LinearAlgebraEngine {
         }
         finally{
             try{
+                System.out.println(executor.getWorkerReport());
                 executor.shutdown();
             }
             catch(InterruptedException e){
@@ -73,6 +74,7 @@ public class LinearAlgebraEngine {
         if(leftMatrix.length() != rightMatrix.length()){
             throw new IllegalArgumentException("[createAddTasks]: Matrix lengths don't match");
         }
+        if(leftMatrix.get(0).length() != rightMatrix.get(0).length())
         for(int i = 0; i < leftMatrix.length(); i++){
             SharedVector left = leftMatrix.get(i);
             SharedVector right = rightMatrix.get(i);
