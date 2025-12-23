@@ -9,6 +9,9 @@ public class SharedMatrix {
     }
 
     public SharedMatrix(double[][] matrix) {
+        if(matrix == null){
+            throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be null");
+        }
         vectors=new SharedVector[matrix.length];
         for(int i=0; i < matrix.length; i++){
             vectors[i]=new SharedVector(matrix[i],VectorOrientation.ROW_MAJOR);
@@ -16,6 +19,9 @@ public class SharedMatrix {
     }
 
     public void loadRowMajor(double[][] matrix) {
+        if(matrix == null){
+            throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be null");
+        }
         SharedVector[] copy=new SharedVector[matrix.length];
         for(int i=0; i < matrix.length; i++){
             copy[i]=new SharedVector(matrix[i],VectorOrientation.ROW_MAJOR);
@@ -24,9 +30,15 @@ public class SharedMatrix {
     }
 
     public void loadColumnMajor(double[][] matrix) {
-        int other_columns=matrix[0].length;
-        SharedVector[] copy=new SharedVector[other_columns]; 
-        for (int c = 0; c < other_columns; c++){
+        if(matrix == null){
+            throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be null");
+        }
+        if(matrix.length == 0){
+            throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be empty");
+        }
+        int otherCol=matrix[0].length;
+        SharedVector[] copy=new SharedVector[otherCol]; 
+        for (int c = 0; c < otherCol; c++){
             double[] normalVector=new double[matrix.length];
             for(int r = 0; r < matrix.length;r++){
                 normalVector[r]=matrix[r][c];
@@ -63,9 +75,9 @@ public class SharedMatrix {
             }
             return output;
         } 
-            finally {
-                releaseAllVectorReadLocks(vectors);
-            }
+        finally {
+            releaseAllVectorReadLocks(vectors);
+        }
     }
 
     public SharedVector get(int index) {

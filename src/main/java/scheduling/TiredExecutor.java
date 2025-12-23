@@ -31,21 +31,18 @@ public class TiredExecutor {
         try{
             TiredThread worker = idleMinHeap.take();
             Runnable wrappedTask = () -> { //wraps the task
-                boolean notCrashed = false;
                 try{
                     task.run();
-                    notCrashed = true;
+                    worker.setBusy(false);
+                    idleMinHeap.put(worker);
                 }
                 catch(Exception e){
                     System.err.print(e.getMessage());
+                    inFlight.set(Integer.MIN_VALUE + workers.length + 1); //flag for handling crashing gracefully
                     throw e;
                 }
                 finally{
                     inFlight.decrementAndGet();
-                    if(notCrashed){
-                        worker.setBusy(false);
-                        idleMinHeap.put(worker);
-                    }
                     synchronized(this){
                         this.notifyAll();
                     }
@@ -63,6 +60,7 @@ public class TiredExecutor {
         // TODO: submit tasks one by one and wait until all finish
         Iterator<Runnable> iter = tasks.iterator();
         while(iter.hasNext()){
+            checkCrash();
             this.submit(iter.next());
         }
         synchronized(this){
@@ -82,8 +80,7 @@ public class TiredExecutor {
     public void shutdown() throws InterruptedException {
         // TODO
         for(int i = 0; i <workers.length;i++){ //Shuts down all workers one after the other
-            TiredThread cur=workers[i];
-            cur.shutdown();                  
+            workers[i].shutdown();                  
         }
         for(int i = 0; i < workers.length;i++){
             workers[i].join(); //Waits for all workers to terminate
@@ -105,10 +102,8 @@ public class TiredExecutor {
     }
 
     private void checkCrash(){
-        for(int i = 0; i < workers.length; i++){   //Handles when a thread crashes.
-            if(workers[i].getState().equals(Thread.State.TERMINATED)){
-                throw new IllegalThreadStateException("[checkCrash]: A thread has crashed and been terminated."); 
-            }
+        if(inFlight.get() < 0){
+            throw new IllegalThreadStateException("[checkCrash]: A thread has crashed");
         }
     }
 }

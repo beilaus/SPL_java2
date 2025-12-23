@@ -24,6 +24,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     private final AtomicLong idleStartTime = new AtomicLong(0); // Timestamp when the worker became idle
 
     public TiredThread(int id, double fatigueFactor) {
+        if(fatigueFactor < 0.5 || fatigueFactor >= 1.5){
+            throw new IllegalArgumentException("[TiredThread]: fatigue factor must be 0.5 <=x< 1.5");
+        }
         this.id = id;
         this.fatigueFactor = fatigueFactor;
         this.idleStartTime.set(System.nanoTime());
@@ -92,7 +95,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
                 }
                 long curStartTime=(System.nanoTime());
                 timeIdle.addAndGet(System.nanoTime()-idleStartTime.get());
-                curtask.run();
+                curtask.run(); //set busy false and put into queue happens here
                 long curStopTime=(System.nanoTime());
                 long TaskDuration=curStopTime-curStartTime;
                 timeUsed.addAndGet(TaskDuration);
@@ -107,12 +110,13 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
     @Override
     public int compareTo(TiredThread o) {
         double res= getFatigue()-o.getFatigue();
-        if(res<0) return -1;
-        else if(res>0) return 1;
+        if(res < 0) return -1;
+        else if(res > 0) return 1;
         else return 0;
     }
 
-    public void setBusy(boolean val){
+    public void setBusy(boolean val){ // allows wrapped task in
+                                    // TiredExecutor to adjust busy value
         busy.set(val);
     }
 }
