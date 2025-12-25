@@ -81,7 +81,7 @@ public class TiredExecutor {
 
     public void shutdown() throws InterruptedException {
         // TODO
-        for(int i = 0; i <workers.length;i++){ //Shuts down all workers one after the other
+        for(int i = 0; i < workers.length;i++){ //Shuts down all workers one after the other
             workers[i].shutdown();                  
         }
         for(int i = 0; i < workers.length;i++){

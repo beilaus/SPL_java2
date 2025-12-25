@@ -34,7 +34,8 @@ public class SharedMatrix {
             throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be null");
         }
         if(matrix.length == 0){
-            throw new IllegalArgumentException("[SharedMatrix]: Matrix cannot be empty");
+            vectors = new SharedVector[0];
+            return;
         }
         int otherCol=matrix[0].length;
         SharedVector[] copy=new SharedVector[otherCol]; 
@@ -95,7 +96,7 @@ public class SharedMatrix {
     public VectorOrientation getOrientation() {
         // TODO: return orientation
         if(vectors.length==0)
-            throw new IndexOutOfBoundsException("[getOrientation]: Given matrix is empty");
+            return VectorOrientation.ROW_MAJOR; //default value for 0 matrix
         return vectors[0].getOrientation();
     }
 

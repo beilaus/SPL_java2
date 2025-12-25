@@ -5,15 +5,21 @@ import java.util.concurrent.locks.ReadWriteLock;
 import javax.management.RuntimeErrorException;
 
 public class SharedVector {
-
     private double[] vector;
     private VectorOrientation orientation;
     private ReadWriteLock lock = new java.util.concurrent.locks.ReentrantReadWriteLock();
+
+    double[] getVector(){ //private package getter for tester
+        return vector;
+    }
 
     public SharedVector(double[] vector, VectorOrientation orientation) {
         // TODO: store vector data and its orientation
         if(vector == null){
             throw new IllegalArgumentException("[SharedVector]: Vector cannot be null");
+        }
+        if(orientation == null){
+            throw new IllegalArgumentException("[SharedVector]: Orientation cannot be null");
         }
         this.orientation=orientation;
         this.vector=vector;
