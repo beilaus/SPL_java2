@@ -46,7 +46,7 @@ public class SharedMatrixTest {
         mat2.loadColumnMajor(emptyInput);
 
         double[][] actOutput = mat2.readRowMajor();
-        assertEquals(emptyInput, actOutput);
+        assertArrayEquals(emptyInput, actOutput);
     }
 
     @Test

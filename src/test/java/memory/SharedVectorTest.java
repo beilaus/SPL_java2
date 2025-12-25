@@ -54,7 +54,7 @@ public class SharedVectorTest {
         //test 2: Successful Column Matrix Multiplication
         SharedVector vec2 = new SharedVector(new double[]{1.0,1.0,1.0}, VectorOrientation.ROW_MAJOR);
         SharedMatrix mat2 = new SharedMatrix();
-        mat2.loadColumnMajor(new double[][]{{2.0,1.0,5.0},{2.0,1.0,5.0}});
+        mat2.loadColumnMajor(new double[][]{{2.0,2.0},{1.0,1.0},{5.0,5.0}});
         vec2.vecMatMul(mat2);
 
         assertArrayEquals(expctOutput1, vec2.getVector());

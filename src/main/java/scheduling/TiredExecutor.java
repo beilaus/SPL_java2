@@ -126,4 +126,16 @@ public class TiredExecutor {
         }
         return sumOfSquaredDeviations;
     }
+
+    int getInFlight(){ //package-private for tests
+        return inFlight.get();
+    }
+
+    boolean minHeapIsEmpty(){
+        return idleMinHeap.isEmpty();
+    }
+
+    TiredThread[] getWorkers(){
+        return workers;
+    }
 }

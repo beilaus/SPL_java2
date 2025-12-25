@@ -121,4 +121,11 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {    
         timeUsed.addAndGet(TaskDuration);
         idleStartTime.set(System.nanoTime());
     }
+
+    boolean hasTaskInQueue(){ //package-private for tests
+        return !handoff.isEmpty();
+    }
+    void setTimeUsed(){ //package-private for tests
+        timeUsed.set(100);
+    }
 }
